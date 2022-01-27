@@ -2,13 +2,10 @@ from flask import Blueprint,Flask,redirect,url_for,render_template,flash, reques
 from flask_mysqldb import MySQL
 from datetime import date
 import MySQLdb
-create = Blueprint("create",__name__,template_folder="templates")
+student = Blueprint("student",__name__,template_folder="templates")
 app = Flask(__name__)
 mysql = MySQL(app)
 
-@create.route("/")
-def createDashboard():
-    return render_template("create.html")
 idnum = ""
 nnnn = 1
 
@@ -46,64 +43,65 @@ def set_nnnn():
         nnnn = 1
 def get_nnnn():
     return nnnn
-@create.route('/college/', methods=["POST","GET"])
-def create_college():
-    if request.method == "POST":
-        collegeCode = request.form['college-code']
-        collegeName = request.form['college-name']
-        cur = mysql.connection.cursor()
-        query = "INSERT INTO `college`(`code`,`name`) VALUES (%s,%s)"
-        values = (collegeCode,collegeName)
-        try:
-            if cur.execute(query, values):
-                mysql.connection.commit()
-                cur.close()
-                flash("College successfully created")
-                return redirect(url_for("create.create_college"))
-            
-        except MySQLdb.IntegrityError:
-            flash("Failed to create college")
-            return redirect(url_for("create.create_college"))
-        except:
-            flash("Failed to create college")
-            return redirect(url_for("create.create_college"))
-        
-    else:
-        return render_template("/create/college.html")
-    return render_template("/create/college.html")
 
-@create.route('/course/', methods=["POST","GET"])
-def create_course():
+@student.route("/delete/student/<value>")
+def delete(value):
+    try:
+        delete = mysql.connection.cursor()
+        del_query = "DELETE FROM student WHERE id = %s"
+        del_values = (value,)
+        
+        delete.execute(del_query,del_values)
+        mysql.connection.commit()
+        delete.close()
+        flash("Student has been deleted")
+        return redirect(url_for('index'))
+    except:
+        flash("Failed to delete student")
+        return redirect(url_for("index"))
+
+@student.route("/edit/student/<value>",methods=["POST","GET"])
+def edit(value):
+    
     if request.method == "POST":
-        courseCode = request.form['course-code']
-        courseName = request.form['course-name']
-        collegeCode = request.form['college-code']
-        cur = mysql.connection.cursor()
-        query = "INSERT INTO `course`(`code`,`name`,`college`) VALUES (%s,%s,%s)"
-        values = (courseCode,courseName,collegeCode)
-        try:         
-            if cur.execute(query, values):
-                mysql.connection.commit()
-                cur.close()
-                flash("Course successfully created")
-                return redirect(url_for("create.create_course"))
-        except MySQLdb.IntegrityError:
-            flash("Failed to create course")
-            return redirect(url_for("create.create_course"))
+        
+        firstname = request.form['firstname']
+        lastname = request.form['lastname']
+        course = request.form['course']
+        yearLevel = request.form['yearLevel']
+        gender = request.form['gender']
+        
+        try:
+            cur = mysql.connection.cursor()
+            edit_stud_que = "UPDATE student SET firstname=%s,lastname=%s,course=%s,yearLevel=%s,gender=%s WHERE id = %s"
+            edit_stud_val = (firstname,lastname,course,yearLevel,gender,value)
+            cur.execute(edit_stud_que,edit_stud_val)
+            mysql.connection.commit()
+            cur.close()
+            flash("Student has been updated")
+            
+            return redirect(url_for("index"))
         except:
-            flash("Failed to create course")
-            return redirect(url_for("create.create_course"))
+            flash("Failed to update student")
+            return redirect(url_for("index"))
+
     else:
         cur = mysql.connection.cursor()
-        query = "SELECT code FROM college"
-        cur.execute(query)
+        cur.execute("SELECT * FROM student WHERE id = %s", (value,))
         data = cur.fetchall()
         cur.close()
-        return render_template("/create/course.html",data=data)
-    return render_template("/create/course.html")
 
-@create.route('/student/', methods=["POST","GET"])
-def create_student():
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT code FROM course")
+        coursedata = cur.fetchall()
+        cur.close()
+        if data:
+            return render_template("/edit/student.html", results=data,coursedata=coursedata)
+        else:
+            return "No Data Found"
+
+@student.route('/create/student/', methods=["POST","GET"])
+def create():
     
     if request.method == "POST":
         set_nnnn()
@@ -124,13 +122,13 @@ def create_student():
                 mysql.connection.commit()
                 cur.close()
                 flash("Student successfully created")
-                return redirect(url_for("create.create_student"))
+                return redirect(url_for("student.create"))
         except MySQLdb.IntegrityError:
             flash("Failed to create student")
-            return redirect(url_for("create.create_student"))
+            return redirect(url_for("student.create"))
         except:
             flash("Failed to create student")   
-            return redirect(url_for("create.create_student"))
+            return redirect(url_for("student.create"))
     else:
         cur = mysql.connection.cursor()
         query = "SELECT code FROM course"

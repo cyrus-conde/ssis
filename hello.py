@@ -1,18 +1,18 @@
-from flask import Flask,redirect,url_for,render_template,flash, request, jsonify
+from flask import Flask,Blueprint,redirect,url_for,render_template,flash, request, jsonify
 from flask_mysqldb import MySQL
 
 from dotenv import load_dotenv
-from create import create
-from edit import edit
-from delete import delete
+from student import student
+from course import course
+from college import college
 load_dotenv()
 import os
 import MySQLdb
 
 app = Flask(__name__)
-app.register_blueprint(create,url_prefix="/create")
-app.register_blueprint(edit,url_prefix="/edit")
-app.register_blueprint(delete,url_prefix="/delete")
+app.register_blueprint(student,url_prefix="/")
+app.register_blueprint(college,url_prefix="/")
+app.register_blueprint(course,url_prefix="/")
 mysql = MySQL(app)
 
 app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
@@ -22,6 +22,9 @@ app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 app.secret_key = os.getenv("SECRET")
 
 
+@app.route("/create/")
+def createDashboard():
+    return render_template("create.html")
 
 
 @app.route('/searchField', methods=['GET','POST'])
@@ -50,28 +53,7 @@ def searchField():
 
 @app.route('/', methods=["POST","GET"])
 def index():
-    
-    ##get student data
-    stud_cur = mysql.connection.cursor()
-    stud_query = "SELECT * FROM student"
-    stud_cur.execute(stud_query)
-    stud_data = stud_cur.fetchall()
-    stud_cur.close()
-    ##end of getting the student data
-    ##get college data
-    coll_cur = mysql.connection.cursor()
-    coll_query = "SELECT * FROM college"
-    coll_cur.execute(coll_query)
-    coll_data = coll_cur.fetchall()
-    coll_cur.close()
-    ## end of getting the college data
-    ##get course data
-    course_cur = mysql.connection.cursor()
-    course_query = "SELECT * FROM course"
-    course_cur.execute(course_query)
-    course_data = course_cur.fetchall()
-    course_cur.close()
-    return render_template("index.html",stud_data = stud_data,coll_data = coll_data, course_data = course_data)
+    return render_template("index.html")
 
 
 

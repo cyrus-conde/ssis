@@ -22,7 +22,7 @@
 
 			<label for="course">Course:</label>
 			<select name="course" id="course" class="form-control">
-				<option value={{row[3]}} selected hidden disabled>{{row[3]}}</option>
+				<option value={{row[3]}} selected hidden>{{row[3]}}</option>
 				{% for course in coursedata %}
 				<option value={{course[0]}}>{{course[0]}}</option>
 				{% endfor %}
